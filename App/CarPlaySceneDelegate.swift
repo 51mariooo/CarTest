@@ -38,6 +38,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 final class CarScreenViewController: UIViewController {
     private let imageView = UIImageView()
     private let waitingView = UIStackView()
+    private let sky = StarfieldView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,6 +48,10 @@ final class CarScreenViewController: UIViewController {
         imageView.frame = view.bounds
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(imageView)
+
+        sky.frame = view.bounds
+        sky.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(sky)
 
         // "Ready" screen shown until mirroring starts.
         let icon = UIImageView(image: UIImage(systemName: "iphone.and.arrow.forward",
@@ -74,6 +79,7 @@ final class CarScreenViewController: UIViewController {
         FrameReceiver.shared.onFrame = { [weak self] image in
             self?.imageView.image = image
             self?.waitingView.isHidden = true
+            self?.sky.isHidden = true
         }
         NotificationCenter.default.addObserver(
             self, selector: #selector(statusChanged),
@@ -84,6 +90,7 @@ final class CarScreenViewController: UIViewController {
         if !FrameReceiver.shared.isMirroring {
             imageView.image = nil
             waitingView.isHidden = false
+            sky.isHidden = false
         }
     }
 }

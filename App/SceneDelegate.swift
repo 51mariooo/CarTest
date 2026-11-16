@@ -38,6 +38,10 @@ final class PhoneViewController: UIViewController {
         overrideUserInterfaceStyle = .dark
         view.backgroundColor = .black
 
+        let sky = StarfieldView(frame: view.bounds)
+        sky.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(sky)
+
         // Header
         let icon = UIImageView(image: UIImage(systemName: "car.side.fill"))
         icon.tintColor = Theme.accent
@@ -59,7 +63,7 @@ final class PhoneViewController: UIViewController {
         card.spacing = 14
         card.isLayoutMarginsRelativeArrangement = true
         card.layoutMargins = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
-        card.backgroundColor = Theme.card
+        card.backgroundColor = Theme.card.withAlphaComponent(0.85)
         card.layer.cornerRadius = 18
 
         // Big round start button
