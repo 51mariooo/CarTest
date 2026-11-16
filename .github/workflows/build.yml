@@ -10,6 +10,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -21,22 +22,26 @@ jobs:
 
       - name: Build app (unsigned)
         run: |
-          xcodebuild -project CarTest.xcodeproj -target CarTest \
+          set -o pipefail
+          xcodebuild -project CarMirror.xcodeproj -target CarMirror \
             -configuration Release -sdk iphoneos \
             SYMROOT="$PWD/build" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
-            build
+            build | tee build.log | grep -E "error:|warning: |BUILD" || true
+          test -d build/Release-iphoneos/CarMirror.app
 
       - name: Package IPA (with CarPlay entitlement embedded)
         run: |
           mkdir -p Payload
-          cp -R build/Release-iphoneos/CarTest.app Payload/
-          codesign --force --sign - --entitlements Config/CarTest.entitlements Payload/CarTest.app
-          zip -qry CarTest.ipa Payload
+          cp -R build/Release-iphoneos/CarMirror.app Payload/
+          ls Payload/CarMirror.app/PlugIns
+          codesign --force --sign - Payload/CarMirror.app/PlugIns/*.appex
+          codesign --force --sign - --entitlements Config/CarMirror.entitlements Payload/CarMirror.app
+          zip -qry CarMirror.ipa Payload
 
       - name: Publish release (easy download on iPhone)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: CarTest build ${{ github.run_number }}
-          files: CarTest.ipa
+          name: CarMirror build ${{ github.run_number }}
+          files: CarMirror.ipa

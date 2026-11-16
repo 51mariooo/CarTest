@@ -1,21 +1,34 @@
-name: CarTest
+name: CarMirror
 options:
   bundleIdPrefix: com.mario
   deploymentTarget:
     iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    GENERATE_INFOPLIST_FILE: NO
 targets:
-  CarTest:
+  CarMirror:
     type: application
     platform: iOS
     sources:
-      - Sources
+      - App
+    dependencies:
+      - target: CarMirrorBroadcast
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.mario.cartest
-        INFOPLIST_FILE: Config/Info.plist
-        GENERATE_INFOPLIST_FILE: NO
-        CODE_SIGN_ENTITLEMENTS: Config/CarTest.entitlements
-        SWIFT_VERSION: "5.0"
-        TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        PRODUCT_BUNDLE_IDENTIFIER: com.mario.carmirror
+        INFOPLIST_FILE: Config/App-Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/CarMirror.entitlements
+  CarMirrorBroadcast:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Broadcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mario.carmirror.broadcast
+        INFOPLIST_FILE: Config/Broadcast-Info.plist
