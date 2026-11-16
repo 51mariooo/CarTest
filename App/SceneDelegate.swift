@@ -18,59 +18,106 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+enum Theme {
+    static let accent = UIColor(red: 0.20, green: 0.58, blue: 1.00, alpha: 1)
+    static let live = UIColor(red: 1.00, green: 0.27, blue: 0.33, alpha: 1)
+    static let card = UIColor(white: 0.11, alpha: 1)
+}
+
 final class PhoneViewController: UIViewController {
-    private let titleLabel = UILabel()
     private let carStatus = UILabel()
     private let mirrorStatus = UILabel()
-    private let startButton = UIButton(type: .system)
-    private let helpLabel = UILabel()
-    private let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 60, height: 60))
+    private let carDot = UIView()
+    private let mirrorDot = UIView()
+    private let startButton = UIButton(type: .custom)
+    private let buttonLabel = UILabel()
+    private let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = .black
 
-        titleLabel.text = "CarMirror"
-        titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
+        // Header
+        let icon = UIImageView(image: UIImage(systemName: "car.side.fill"))
+        icon.tintColor = Theme.accent
+        icon.contentMode = .scaleAspectFit
+        let title = UILabel()
+        title.text = "CarMirror"
+        title.font = .systemFont(ofSize: 32, weight: .heavy)
+        title.textColor = .white
+        let header = UIStackView(arrangedSubviews: [icon, title])
+        header.spacing = 10
+        header.alignment = .center
 
-        for label in [carStatus, mirrorStatus] {
-            label.font = .systemFont(ofSize: 18, weight: .medium)
-        }
+        // Status card
+        let card = UIStackView(arrangedSubviews: [
+            row(dot: carDot, label: carStatus),
+            row(dot: mirrorDot, label: mirrorStatus),
+        ])
+        card.axis = .vertical
+        card.spacing = 14
+        card.isLayoutMarginsRelativeArrangement = true
+        card.layoutMargins = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
+        card.backgroundColor = Theme.card
+        card.layer.cornerRadius = 18
 
-        var config = UIButton.Configuration.filled()
-        config.cornerStyle = .large
-        config.baseBackgroundColor = .systemGreen
-        config.title = "Start / Stop Mirroring"
-        config.contentInsets = NSDirectionalEdgeInsets(top: 18, leading: 24, bottom: 18, trailing: 24)
-        startButton.configuration = config
+        // Big round start button
+        startButton.layer.cornerRadius = 80
+        startButton.layer.shadowOpacity = 0.6
+        startButton.layer.shadowRadius = 24
+        startButton.layer.shadowOffset = .zero
         startButton.addTarget(self, action: #selector(tapStart), for: .touchUpInside)
+        let symbol = UIImageView(image: UIImage(systemName: "rectangle.on.rectangle",
+                                                withConfiguration: UIImage.SymbolConfiguration(pointSize: 38, weight: .semibold)))
+        symbol.tintColor = .white
+        symbol.isUserInteractionEnabled = false
+        buttonLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        buttonLabel.textColor = .white
+        let inner = UIStackView(arrangedSubviews: [symbol, buttonLabel])
+        inner.axis = .vertical
+        inner.alignment = .center
+        inner.spacing = 8
+        inner.isUserInteractionEnabled = false
+        inner.translatesAutoresizingMaskIntoConstraints = false
+        startButton.addSubview(inner)
 
-        helpLabel.numberOfLines = 0
-        helpLabel.textColor = .secondaryLabel
-        helpLabel.font = .systemFont(ofSize: 15)
-        helpLabel.text = """
-        1. Connect to CarPlay and open CarMirror on the car screen.
-        2. Tap Start / Stop Mirroring, pick "CarMirror", then Start Broadcast.
-        3. Switch to any app — it shows on the car screen. Sound plays through the car as normal.
-        To stop: tap the red bar/clock at the top of the iPhone, or this button again.
-        """
+        let help = UILabel()
+        help.numberOfLines = 0
+        help.textColor = UIColor(white: 0.55, alpha: 1)
+        help.font = .systemFont(ofSize: 14)
+        help.textAlignment = .center
+        help.text = "Open CarMirror on the car screen, tap the button, choose CarMirror and Start Broadcast. Then open any app."
 
         picker.showsMicrophoneButton = false
         picker.preferredExtension = Self.broadcastExtensionID()
+        picker.alpha = 0.01
 
-        let stack = UIStackView(arrangedSubviews: [titleLabel, carStatus, mirrorStatus, startButton, picker, helpLabel])
-        stack.axis = .vertical
-        stack.spacing = 20
-        stack.alignment = .leading
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
+        for v in [header, card, startButton, help, picker] {
+            v.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(v)
+        }
+        let g = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            startButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            picker.widthAnchor.constraint(equalToConstant: 60),
-            picker.heightAnchor.constraint(equalToConstant: 60),
+            icon.widthAnchor.constraint(equalToConstant: 34),
+            header.topAnchor.constraint(equalTo: g.topAnchor, constant: 24),
+            header.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 24),
+            card.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 24),
+            card.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 20),
+            card.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -20),
+            startButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            startButton.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 60),
+            startButton.widthAnchor.constraint(equalToConstant: 160),
+            startButton.heightAnchor.constraint(equalToConstant: 160),
+            inner.centerXAnchor.constraint(equalTo: startButton.centerXAnchor),
+            inner.centerYAnchor.constraint(equalTo: startButton.centerYAnchor),
+            help.leadingAnchor.constraint(equalTo: g.leadingAnchor, constant: 32),
+            help.trailingAnchor.constraint(equalTo: g.trailingAnchor, constant: -32),
+            help.bottomAnchor.constraint(equalTo: g.bottomAnchor, constant: -24),
+            picker.widthAnchor.constraint(equalToConstant: 1),
+            picker.heightAnchor.constraint(equalToConstant: 1),
+            picker.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            picker.bottomAnchor.constraint(equalTo: help.topAnchor),
         ])
 
         NotificationCenter.default.addObserver(self, selector: #selector(refresh), name: .mirrorStatusChanged, object: nil)
@@ -78,13 +125,30 @@ final class PhoneViewController: UIViewController {
         refresh()
     }
 
+    private func row(dot: UIView, label: UILabel) -> UIStackView {
+        dot.layer.cornerRadius = 5
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        dot.heightAnchor.constraint(equalToConstant: 10).isActive = true
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .white
+        let r = UIStackView(arrangedSubviews: [dot, label])
+        r.spacing = 12
+        r.alignment = .center
+        return r
+    }
+
     @objc private func refresh() {
-        carStatus.text = CarPlaySceneDelegate.isConnected
-            ? "🚗 Car screen: connected"
-            : "🚗 Car screen: not connected (open CarMirror in CarPlay)"
-        mirrorStatus.text = FrameReceiver.shared.isMirroring
-            ? "🔴 Mirroring: ON"
-            : "⚪️ Mirroring: off"
+        let car = CarPlaySceneDelegate.isConnected
+        let live = FrameReceiver.shared.isMirroring
+        carStatus.text = car ? "Car screen connected" : "Open CarMirror in CarPlay"
+        carDot.backgroundColor = car ? Theme.accent : UIColor(white: 0.35, alpha: 1)
+        mirrorStatus.text = live ? "Mirroring live" : "Mirroring off"
+        mirrorDot.backgroundColor = live ? Theme.live : UIColor(white: 0.35, alpha: 1)
+        let color = live ? Theme.live : Theme.accent
+        startButton.backgroundColor = color
+        startButton.layer.shadowColor = color.cgColor
+        buttonLabel.text = live ? "Stop" : "Start"
     }
 
     /// Opens the iOS broadcast sheet by tapping the system picker's button.

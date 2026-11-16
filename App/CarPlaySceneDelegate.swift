@@ -37,7 +37,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
 final class CarScreenViewController: UIViewController {
     private let imageView = UIImageView()
-    private let statusLabel = UILabel()
+    private let waitingView = UIStackView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,20 +48,32 @@ final class CarScreenViewController: UIViewController {
         imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(imageView)
 
-        // Green "test passed" screen shown until mirroring starts.
-        statusLabel.numberOfLines = 0
-        statusLabel.textAlignment = .center
-        statusLabel.textColor = .white
-        statusLabel.backgroundColor = .systemGreen
-        statusLabel.font = .systemFont(ofSize: 26, weight: .bold)
-        statusLabel.text = "CarPlay works ✅\nOpen CarMirror on your iPhone\nand tap Start Mirroring"
-        statusLabel.frame = view.bounds
-        statusLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(statusLabel)
+        // "Ready" screen shown until mirroring starts.
+        let icon = UIImageView(image: UIImage(systemName: "iphone.and.arrow.forward",
+                                              withConfiguration: UIImage.SymbolConfiguration(pointSize: 44, weight: .semibold)))
+        icon.tintColor = UIColor(red: 0.20, green: 0.58, blue: 1.00, alpha: 1)
+        let title = UILabel()
+        title.text = "Ready to mirror"
+        title.font = .systemFont(ofSize: 26, weight: .heavy)
+        title.textColor = .white
+        let subtitle = UILabel()
+        subtitle.text = "Tap Start in CarMirror on your iPhone"
+        subtitle.font = .systemFont(ofSize: 16, weight: .medium)
+        subtitle.textColor = UIColor(white: 0.6, alpha: 1)
+        for v in [icon, title, subtitle] { waitingView.addArrangedSubview(v) }
+        waitingView.axis = .vertical
+        waitingView.alignment = .center
+        waitingView.spacing = 10
+        waitingView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(waitingView)
+        NSLayoutConstraint.activate([
+            waitingView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            waitingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
 
         FrameReceiver.shared.onFrame = { [weak self] image in
             self?.imageView.image = image
-            self?.statusLabel.isHidden = true
+            self?.waitingView.isHidden = true
         }
         NotificationCenter.default.addObserver(
             self, selector: #selector(statusChanged),
@@ -71,7 +83,7 @@ final class CarScreenViewController: UIViewController {
     @objc private func statusChanged() {
         if !FrameReceiver.shared.isMirroring {
             imageView.image = nil
-            statusLabel.isHidden = false
+            waitingView.isHidden = false
         }
     }
 }
