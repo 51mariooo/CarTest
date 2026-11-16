@@ -1,0 +1,31 @@
+name: Auto-retry Mac build
+# GitHub's free Mac machines are busy, so builds sometimes get cancelled
+# before they start. This runs every 15 minutes on a (free, always available)
+# Linux machine and restarts the Mac build if no Mac ever picked it up.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  retry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart build if it never got a Mac
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R: ${{ github.repository }}
+        run: |
+          read id status conclusion <<< "$(gh api "repos/$R/actions/workflows/build.yml/runs?per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion)"')"
+          echo "Latest build $id: $status $conclusion"
+          if [ "$status" = completed ] && [ "$conclusion" != success ]; then
+            ran=$(gh api "repos/$R/actions/runs/$id/jobs" --jq '[.jobs[] | select((.runner_name // "") != "")] | length')
+            if [ "$ran" = 0 ]; then
+              echo "No Mac picked it up - restarting"
+              gh run rerun "$id" -R "$R"
+            else
+              echo "A Mac ran it and it failed - needs a code fix, not a retry"
+            fi
+          fi
