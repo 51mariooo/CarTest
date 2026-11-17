@@ -23,6 +23,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.mario.carmirror
         INFOPLIST_FILE: Config/App-Info.plist
         CODE_SIGN_ENTITLEMENTS: Config/CarMirror.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   CarMirrorBroadcast:
     type: app-extension
     platform: iOS
